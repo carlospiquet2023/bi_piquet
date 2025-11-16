@@ -1219,6 +1219,9 @@ class BIAnalyticsPro {
     // Obter templates de metas disponíveis
     const goalTemplates = this.goalsManager.getGoalTemplates();
     
+    // Limpar metas anteriores para evitar duplicatas
+    this.goalsManager.goals = [];
+    
     // Mapear IDs de KPI para tipos de meta apropriados
     const kpiGoalMapping = {
       // KPIs de receita/vendas
@@ -1255,6 +1258,7 @@ class BIAnalyticsPro {
     // Criar metas para os principais KPIs (máximo 5)
     let goalsCreated = 0;
     const maxGoals = 5;
+    const usedTemplates = new Set(); // Evitar metas duplicadas
     
     for (const kpi of kpis) {
       if (goalsCreated >= maxGoals) break;
@@ -1267,17 +1271,24 @@ class BIAnalyticsPro {
       // Tentar encontrar mapping baseado no ID do KPI
       const kpiIdLower = kpi.id.toLowerCase();
       let mapping = null;
+      let matchedTemplate = null;
       
       for (const [keyword, map] of Object.entries(kpiGoalMapping)) {
         if (kpiIdLower.includes(keyword)) {
           mapping = map;
+          matchedTemplate = map.template;
           break;
         }
       }
       
-      if (!mapping) continue;
+      if (!mapping || !matchedTemplate) continue;
       
-      const goalTemplate = goalTemplates[mapping.template];
+      // Evitar criar metas duplicadas do mesmo template
+      if (usedTemplates.has(matchedTemplate)) {
+        continue;
+      }
+      
+      const goalTemplate = goalTemplates[matchedTemplate];
       if (!goalTemplate) continue;
       
       // Calcular meta baseada no valor atual
@@ -1288,10 +1299,12 @@ class BIAnalyticsPro {
       const goalConfig = {
         name: `${goalTemplate.name} - ${new Date().getFullYear()}`,
         description: `Meta automática: aumentar ${kpi.title} em ${Math.round((mapping.multiplier - 1) * 100)}%`,
+        type: goalTemplate.type || 'revenue',
         metric: kpi.id,
-        currentValue: currentValue,
-        targetValue: targetValue,
+        target: targetValue,
+        current: currentValue,
         period: period,
+        priority: 'medium',
         category: goalTemplate.category,
         icon: goalTemplate.icon
       };
@@ -1299,8 +1312,9 @@ class BIAnalyticsPro {
       try {
         const goal = this.goalsManager.createGoal(goalConfig);
         createdGoals.push(goal);
+        usedTemplates.add(matchedTemplate); // Marcar template como usado
         goalsCreated++;
-        console.log(`🎯 Meta automática criada: ${goal.name} (${kpi.title})`);
+        console.log(`🎯 Meta automática criada: ${goal.name} (${kpi.title}: ${currentValue} → ${targetValue})`);
       } catch (error) {
         console.error('❌ Erro ao criar meta automática:', error);
       }
@@ -1363,6 +1377,30 @@ class BIAnalyticsPro {
     console.log('🎯 Dashboard de Metas:', dashboard);
     // Aqui você pode criar uma UI específica para o dashboard
     return dashboard;
+  }
+
+  /**
+   * Formatar valor de meta baseado no tipo
+   */
+  formatGoalValue(value, type) {
+    if (value === undefined || value === null) return '0';
+    
+    switch (type) {
+      case 'revenue':
+        return new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        }).format(value);
+      
+      case 'percentage':
+        return `${value.toFixed(1)}%`;
+      
+      case 'quantity':
+        return new Intl.NumberFormat('pt-BR').format(value);
+      
+      default:
+        return value.toString();
+    }
   }
 
   /**
@@ -1546,14 +1584,15 @@ class BIAnalyticsPro {
                   </div>
                   <div class="goal-progress">
                     <div class="progress-bar-goal">
-                      <div class="progress-fill-goal" style="width: ${goal.progress}%"></div>
+                      <div class="progress-fill-goal" style="width: ${Math.min(goal.progress || 0, 100)}%"></div>
                     </div>
-                    <span class="progress-text">${goal.progress.toFixed(1)}%</span>
+                    <span class="progress-text">${(goal.progress || 0).toFixed(1)}%</span>
                   </div>
                   <div class="goal-details">
-                    <span>Atual: ${goal.current} / Meta: ${goal.target}</span>
+                    <span>Atual: ${this.formatGoalValue(goal.current, goal.type)} / Meta: ${this.formatGoalValue(goal.target, goal.type)}</span>
                     <span>Período: ${goal.period}</span>
                   </div>
+                  <p class="goal-description">${goal.description || ''}</p>
                 </div>
               `).join('') : '<p class="empty-state">Nenhuma meta ativa. Crie sua primeira meta!</p>'}
             </div>
