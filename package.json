@@ -1,0 +1,52 @@
+{
+  "name": "bi-analytics-pro",
+  "version": "1.0.0",
+  "description": "Sistema profissional de análise automática de planilhas com IA e geração de insights",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "lint": "eslint src",
+    "format": "prettier --write src"
+  },
+  "keywords": [
+    "analytics",
+    "bi",
+    "business-intelligence",
+    "excel",
+    "dashboard",
+    "charts",
+    "machine-learning",
+    "rfm-analysis",
+    "churn-prediction",
+    "data-analysis"
+  ],
+  "author": "Carlos Antonio de Oliveira Piquet <carlospiquet.projetos@gmail.com>",
+  "license": "UNLICENSED",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/carlospiquet2023/bi_piquet.git"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5",
+    "chart.js": "^4.4.1",
+    "apexcharts": "^3.45.2",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2",
+    "html2canvas": "^1.4.1",
+    "papaparse": "^5.4.1",
+    "lodash-es": "^4.17.21",
+    "regression": "^2.0.1"
+  },
+  "devDependencies": {
+    "vite": "^5.0.12",
+    "vitest": "^1.2.2",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.4",
+    "@types/node": "^20.11.5"
+  }
+}

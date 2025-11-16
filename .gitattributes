@@ -1,0 +1,55 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# JavaScript files
+*.js text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.jsx text eol=lf
+
+# JSON files
+*.json text eol=lf
+
+# HTML/CSS files
+*.html text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+
+# Markdown files
+*.md text eol=lf
+*.markdown text eol=lf
+
+# Configuration files
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.config.js text eol=lf
+
+# Shell scripts
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text
+
+# Archives
+*.zip binary
+*.tar binary
+*.gz binary
+*.7z binary
+
+# Excel/PDF
+*.xlsx binary
+*.xls binary
+*.pdf binary
+
+# Exclude files from export
+.gitattributes export-ignore
+.gitignore export-ignore
+.eslintrc.json export-ignore
+.prettierrc export-ignore

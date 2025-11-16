@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BI Analytics Pro - Análise Automática de Planilhas</title>
+    <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <h1 class="logo">📊 BI Analytics Pro</h1>
+                <p class="subtitle">Análise automática de planilhas com IA e insights estratégicos</p>
+            </div>
+        </header>
+
+        <!-- Upload Section -->
+        <section id="upload-section" class="upload-section">
+            <div class="container">
+                <div class="upload-card">
+                    <div class="upload-icon">📤</div>
+                    <h2>Carregue sua planilha Excel</h2>
+                    <p>Arraste e solte ou clique para selecionar</p>
+                    <input type="file" id="file-input" accept=".xlsx,.xls" hidden>
+                    <button id="upload-btn" class="btn-primary">Selecionar Arquivo</button>
+                    <div id="file-info" class="file-info hidden"></div>
+                    <div id="upload-progress" class="progress-bar hidden">
+                        <div class="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Processing Section -->
+        <section id="processing-section" class="processing-section hidden">
+            <div class="container">
+                <div class="processing-steps">
+                    <div class="step" data-step="1">
+                        <div class="step-icon">📖</div>
+                        <h3>Lendo planilha</h3>
+                        <p class="step-status">Processando...</p>
+                    </div>
+                    <div class="step" data-step="2">
+                        <div class="step-icon">🔍</div>
+                        <h3>Detectando colunas</h3>
+                        <p class="step-status">Aguardando...</p>
+                    </div>
+                    <div class="step" data-step="3">
+                        <div class="step-icon">✅</div>
+                        <h3>Validando dados</h3>
+                        <p class="step-status">Aguardando...</p>
+                    </div>
+                    <div class="step" data-step="4">
+                        <div class="step-icon">📊</div>
+                        <h3>Gerando análises</h3>
+                        <p class="step-status">Aguardando...</p>
+                    </div>
+                    <div class="step" data-step="5">
+                        <div class="step-icon">💡</div>
+                        <h3>Criando insights</h3>
+                        <p class="step-status">Aguardando...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard-section" class="dashboard-section hidden">
+            <div class="container">
+                <!-- Actions Bar -->
+                <div class="actions-bar">
+                    <button id="export-pdf-btn" class="btn-action">📄 Exportar PDF</button>
+                    <button id="export-excel-btn" class="btn-action">📊 Exportar Excel</button>
+                    <button id="export-csv-btn" class="btn-action">📋 Exportar CSV</button>
+                    <button id="new-analysis-btn" class="btn-secondary">🔄 Nova Análise</button>
+                </div>
+
+                <!-- KPIs Section -->
+                <div id="kpis-container" class="kpis-container"></div>
+
+                <!-- Insights Section -->
+                <div id="insights-container" class="insights-container"></div>
+
+                <!-- Charts Section -->
+                <div id="charts-container" class="charts-container"></div>
+
+                <!-- Data Table Section -->
+                <div id="table-container" class="table-container"></div>
+            </div>
+        </section>
+
+        <!-- Error Section -->
+        <section id="error-section" class="error-section hidden">
+            <div class="container">
+                <div class="error-card">
+                    <div class="error-icon">⚠️</div>
+                    <h2>Ops! Algo deu errado</h2>
+                    <p id="error-message"></p>
+                    <button id="retry-btn" class="btn-primary">Tentar Novamente</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+# Markdown files
+*.md
+
+# JSON configuration files  
+*.json
+
+# License file
+LICENSE
