@@ -350,11 +350,17 @@ class BIAnalyticsPro {
     container.id = 'advanced-analytics-container';
     container.className = 'section';
     
-    const chartsSection = document.getElementById('charts-section');
+    const chartsSection = document.getElementById('charts-container');
     if (chartsSection && chartsSection.parentNode) {
       chartsSection.parentNode.insertBefore(container, chartsSection.nextSibling);
     } else {
-      document.querySelector('.dashboard').appendChild(container);
+      const dashboardSection = document.getElementById('dashboard-section');
+      if (dashboardSection) {
+        const containerDiv = dashboardSection.querySelector('.container');
+        if (containerDiv) {
+          containerDiv.appendChild(container);
+        }
+      }
     }
     
     return container;
@@ -815,9 +821,14 @@ class BIAnalyticsPro {
     container.id = 'ai-report-container';
     container.className = 'ai-report-container';
     
-    const dashboard = document.getElementById('dashboard');
-    if (dashboard) {
-      dashboard.appendChild(container);
+    const dashboardSection = document.getElementById('dashboard-section');
+    if (dashboardSection) {
+      const containerDiv = dashboardSection.querySelector('.container');
+      if (containerDiv) {
+        containerDiv.appendChild(container);
+      } else {
+        dashboardSection.appendChild(container);
+      }
     } else {
       document.body.appendChild(container);
     }
