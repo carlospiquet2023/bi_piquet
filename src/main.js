@@ -26,6 +26,7 @@ import { FilterManager } from './modules/FilterManager.js';
 import { DashboardCustomizer } from './modules/DashboardCustomizer.js';
 import { AlertsManager } from './modules/AlertsManager.js';
 import { AdvancedChartsHelper } from './modules/AdvancedChartsHelper.js';
+import { AIReportGenerator } from './modules/AIReportGenerator.js';
 
 class BIAnalyticsPro {
   constructor() {
@@ -49,6 +50,7 @@ class BIAnalyticsPro {
     this.filterManager = new FilterManager();
     this.dashboardCustomizer = new DashboardCustomizer();
     this.alertsManager = new AlertsManager();
+    this.aiReportGenerator = new AIReportGenerator();
     
     this.currentData = null;
     this.columnMetadata = null;
@@ -112,6 +114,9 @@ class BIAnalyticsPro {
     document.getElementById('export-csv-btn')?.addEventListener('click', () => this.exportToCSV());
     document.getElementById('new-analysis-btn')?.addEventListener('click', () => this.reset());
     document.getElementById('retry-btn')?.addEventListener('click', () => this.reset());
+    
+    // AI Report button
+    document.getElementById('ai-report-btn')?.addEventListener('click', () => this.generateAIReport());
     
     // Progress listener
     window.addEventListener('upload-progress', (e) => {
@@ -646,6 +651,273 @@ class BIAnalyticsPro {
     // Limpar input
     const fileInput = document.getElementById('file-input');
     if (fileInput) fileInput.value = '';
+  }
+
+  /**
+   * Gera relatório detalhado com IA
+   */
+  async generateAIReport() {
+    if (!this.currentData || !this.analytics) {
+      alert('⚠️ Nenhuma análise disponível. Por favor, faça upload de uma planilha primeiro.');
+      return;
+    }
+
+    const button = document.getElementById('ai-report-btn');
+    if (button) {
+      button.disabled = true;
+      button.innerHTML = '<span class="spinner"></span> Gerando Relatório com IA...';
+    }
+
+    try {
+      console.log('🤖 Iniciando geração de relatório com IA...');
+      
+      // Gerar relatório completo com IA
+      const aiReport = await this.aiReportGenerator.generateComprehensiveReport(
+        this.currentData,
+        this.analytics,
+        this.advancedAnalytics
+      );
+
+      console.log('✅ Relatório IA gerado:', aiReport);
+
+      // Exibir relatório na interface
+      this.displayAIReport(aiReport);
+
+      // Habilitar exportação do relatório
+      this.enableAIReportExport(aiReport);
+
+    } catch (error) {
+      console.error('Erro ao gerar relatório com IA:', error);
+      alert(`Erro ao gerar relatório: ${error.message}`);
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.innerHTML = '🤖 Gerar Relatório com IA';
+      }
+    }
+  }
+
+  /**
+   * Exibe relatório de IA na interface
+   */
+  displayAIReport(report) {
+    const container = document.getElementById('ai-report-container') || this.createAIReportContainer();
+    
+    container.innerHTML = `
+      <div class="ai-report">
+        <div class="ai-report-header">
+          <h2>🤖 Relatório Inteligente com IA</h2>
+          <p class="report-meta">
+            ID: ${report.reportId} | 
+            Gerado em: ${new Date(report.timestamp).toLocaleString('pt-BR')}
+          </p>
+          <button id="export-ai-report-btn" class="export-btn">
+            📄 Exportar Relatório IA
+          </button>
+        </div>
+
+        ${this.renderReportSection(report.sections.executiveSummary)}
+        ${this.renderReportSection(report.sections.trends)}
+        ${this.renderReportSection(report.sections.opportunities)}
+        ${this.renderReportSection(report.sections.risks)}
+        ${this.renderReportSection(report.sections.performance)}
+        ${this.renderReportSection(report.sections.recommendations)}
+        ${this.renderReportSection(report.sections.predictions)}
+        ${this.renderReportSection(report.sections.actionPlan)}
+      </div>
+    `;
+
+    // Scroll suave até o relatório
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Adicionar listener para exportação
+    document.getElementById('export-ai-report-btn')?.addEventListener('click', () => {
+      this.exportAIReport(report);
+    });
+  }
+
+  /**
+   * Renderiza uma seção do relatório
+   */
+  renderReportSection(section) {
+    if (!section) return '';
+
+    const priorityClass = section.priority || 'normal';
+    const severityClass = section.severity ? `severity-${section.severity.toLowerCase()}` : '';
+
+    return `
+      <div class="report-section ${priorityClass} ${severityClass}">
+        <h3>${section.title}</h3>
+        <div class="section-content">
+          ${this.formatMarkdownToHTML(section.content)}
+        </div>
+        ${section.insights ? this.renderInsights(section.insights) : ''}
+        ${section.charts ? this.renderChartPlaceholders(section.charts) : ''}
+      </div>
+    `;
+  }
+
+  /**
+   * Converte Markdown para HTML (básico)
+   */
+  formatMarkdownToHTML(text) {
+    if (!text) return '';
+
+    return text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') // Negrito
+      .replace(/\*(.+?)\*/g, '<em>$1</em>') // Itálico
+      .replace(/^### (.+)$/gm, '<h4>$3</h4>') // H4
+      .replace(/^## (.+)$/gm, '<h3>$1</h3>') // H3
+      .replace(/^# (.+)$/gm, '<h2>$1</h2>') // H2
+      .replace(/^- (.+)$/gm, '<li>$1</li>') // Lista
+      .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>') // Envolver lista
+      .replace(/\n\n/g, '</p><p>') // Parágrafos
+      .replace(/^(.+)$/gm, '<p>$1</p>'); // Wrap em parágrafos
+  }
+
+  /**
+   * Renderiza insights adicionais
+   */
+  renderInsights(insights) {
+    if (!insights || insights.length === 0) return '';
+
+    return `
+      <div class="section-insights">
+        ${insights.map(insight => `
+          <div class="insight-item ${insight.type}">
+            ${insight.message}
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  /**
+   * Renderiza placeholders para gráficos
+   */
+  renderChartPlaceholders(charts) {
+    return `
+      <div class="section-charts">
+        ${charts.map(chart => `
+          <div class="chart-placeholder" data-chart-type="${chart}">
+            📊 Gráfico: ${chart}
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  /**
+   * Cria container para relatório IA
+   */
+  createAIReportContainer() {
+    const container = document.createElement('div');
+    container.id = 'ai-report-container';
+    container.className = 'ai-report-container';
+    
+    const dashboard = document.getElementById('dashboard');
+    if (dashboard) {
+      dashboard.appendChild(container);
+    } else {
+      document.body.appendChild(container);
+    }
+    
+    return container;
+  }
+
+  /**
+   * Habilita exportação do relatório IA
+   */
+  enableAIReportExport(report) {
+    this.currentAIReport = report;
+  }
+
+  /**
+   * Exporta relatório IA para PDF
+   */
+  async exportAIReport(report) {
+    try {
+      const button = document.getElementById('export-ai-report-btn');
+      if (button) {
+        button.disabled = true;
+        button.textContent = '⏳ Gerando PDF...';
+      }
+
+      // Criar PDF do relatório IA
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      let yPosition = 20;
+      const pageHeight = doc.internal.pageSize.height;
+      const margin = 20;
+      const lineHeight = 7;
+
+      // Título
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text('Relatório Inteligente com IA', margin, yPosition);
+      yPosition += 10;
+
+      // Metadados
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.text(`ID: ${report.reportId}`, margin, yPosition);
+      yPosition += 5;
+      doc.text(`Gerado em: ${new Date(report.timestamp).toLocaleString('pt-BR')}`, margin, yPosition);
+      yPosition += 15;
+
+      // Processar seções
+      const sections = Object.values(report.sections);
+      for (const section of sections) {
+        if (!section) continue;
+
+        // Verificar espaço na página
+        if (yPosition > pageHeight - 40) {
+          doc.addPage();
+          yPosition = 20;
+        }
+
+        // Título da seção
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text(section.title, margin, yPosition);
+        yPosition += lineHeight;
+
+        // Conteúdo
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        
+        const content = section.content?.replace(/[*#]/g, '') || '';
+        const lines = doc.splitTextToSize(content, 170);
+        
+        for (const line of lines) {
+          if (yPosition > pageHeight - margin) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          doc.text(line, margin, yPosition);
+          yPosition += lineHeight;
+        }
+        
+        yPosition += 10; // Espaço entre seções
+      }
+
+      // Salvar PDF
+      const filename = `Relatorio_IA_${report.reportId}_${Date.now()}.pdf`;
+      doc.save(filename);
+
+      alert(`✅ Relatório exportado: ${filename}`);
+
+    } catch (error) {
+      console.error('Erro ao exportar relatório:', error);
+      alert('Erro ao exportar relatório IA');
+    } finally {
+      const button = document.getElementById('export-ai-report-btn');
+      if (button) {
+        button.disabled = false;
+        button.textContent = '📄 Exportar Relatório IA';
+      }
+    }
   }
 
   /**

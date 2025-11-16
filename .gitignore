@@ -7,11 +7,17 @@ dist/
 build/
 *.cache
 
-# Environment variables
+# Environment variables - PROTEGER API KEYS
 .env
 .env.local
 .env.production
 .env.development
+
+# API Keys e Credenciais - NUNCA COMMITAR
+**/*.key
+**/*.secret
+**/credentials.json
+.deepseek_api_key
 
 # Logs
 *.log
