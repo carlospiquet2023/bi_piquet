@@ -21,10 +21,37 @@
             <div class="container">
                 <div class="upload-card">
                     <div class="upload-icon">📤</div>
-                    <h2>Carregue sua planilha Excel</h2>
-                    <p>Arraste e solte ou clique para selecionar</p>
-                    <input type="file" id="file-input" accept=".xlsx,.xls" hidden>
-                    <button id="upload-btn" class="btn-primary">Selecionar Arquivo</button>
+                    <h2>Carregue seus dados</h2>
+                    <p>Suporte a Excel, JSON, XML, CSV e Google Sheets</p>
+                    
+                    <!-- Tabs para escolher método de importação -->
+                    <div class="import-tabs">
+                        <button class="tab-btn active" data-tab="file">📁 Arquivo Local</button>
+                        <button class="tab-btn" data-tab="url">🌐 Google Sheets</button>
+                    </div>
+                    
+                    <!-- Upload de Arquivo -->
+                    <div class="tab-content active" data-content="file">
+                        <input type="file" id="file-input" accept=".xlsx,.xls,.json,.xml,.csv" hidden>
+                        <button id="upload-btn" class="btn-primary">Selecionar Arquivo</button>
+                        <div class="supported-formats">
+                            <small>
+                                Formatos: Excel (.xlsx, .xls) • JSON (.json) • XML (.xml) • CSV (.csv)
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <!-- Import de Google Sheets -->
+                    <div class="tab-content" data-content="url">
+                        <input type="text" id="sheets-url" class="url-input" placeholder="Cole a URL da planilha do Google Sheets">
+                        <button id="import-sheets-btn" class="btn-primary">Importar Google Sheets</button>
+                        <div class="url-help">
+                            <small>
+                                ℹ️ A planilha deve estar configurada como pública ou com link de compartilhamento
+                            </small>
+                        </div>
+                    </div>
+                    
                     <div id="file-info" class="file-info hidden"></div>
                     <div id="upload-progress" class="progress-bar hidden">
                         <div class="progress-fill"></div>
@@ -71,10 +98,12 @@
             <div class="container">
                 <!-- Actions Bar -->
                 <div class="actions-bar">
-                    <button id="ai-report-btn" class="btn-ai">🤖 Gerar Relatório com IA</button>
-                    <button id="export-pdf-btn" class="btn-action">📄 Exportar PDF</button>
-                    <button id="export-excel-btn" class="btn-action">📊 Exportar Excel</button>
-                    <button id="export-csv-btn" class="btn-action">📋 Exportar CSV</button>
+                    <button id="templates-btn" class="btn-templates">🎯 Templates</button>
+                    <button id="goals-btn" class="btn-goals">📈 Metas</button>
+                    <button id="ai-report-btn" class="btn-ai">🤖 Relatório IA</button>
+                    <button id="export-pdf-btn" class="btn-action">📄 PDF</button>
+                    <button id="export-excel-btn" class="btn-action">📊 Excel</button>
+                    <button id="export-csv-btn" class="btn-action">📋 CSV</button>
                     <button id="new-analysis-btn" class="btn-secondary">🔄 Nova Análise</button>
                 </div>
 

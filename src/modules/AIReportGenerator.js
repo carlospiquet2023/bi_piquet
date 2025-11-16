@@ -443,7 +443,15 @@ Seja EXTREMAMENTE ESPECÍFICO e ACIONÁVEL. Cada ação deve poder ser executada
                 });
 
                 if (!response.ok) {
-                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                    const errorText = await response.text();
+                    
+                    // Erro 402 - API sem créditos ou expirada
+                    if (response.status === 402) {
+                        console.warn('⚠️ API DeepSeek sem créditos. Configure uma nova API key ou use análise local.');
+                        return this.generateLocalAnalysis(section);
+                    }
+                    
+                    throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorText}`);
                 }
 
                 const data = await response.json();

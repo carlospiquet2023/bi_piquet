@@ -1,10 +1,15 @@
 /**
  * Arquivo Principal - Orquestrador do Sistema
  * Coordena todos os módulos e gerencia o fluxo completo
+ * 
+ * @version 3.0.0 - Suporte a múltiplos formatos e templates
  */
 
 import { FileUploadManager } from './modules/FileUploadManager.js';
 import { ExcelParser } from './modules/ExcelParser.js';
+import { JSONParser } from './modules/JSONParser.js';
+import { XMLParser } from './modules/XMLParser.js';
+import { GoogleSheetsParser } from './modules/GoogleSheetsParser.js';
 import { ColumnTypeDetector } from './modules/ColumnTypeDetector.js';
 import { DataValidator } from './modules/DataValidator.js';
 import { AnalyticsEngine } from './modules/AnalyticsEngine.js';
@@ -27,11 +32,17 @@ import { DashboardCustomizer } from './modules/DashboardCustomizer.js';
 import { AlertsManager } from './modules/AlertsManager.js';
 import { AdvancedChartsHelper } from './modules/AdvancedChartsHelper.js';
 import { AIReportGenerator } from './modules/AIReportGenerator.js';
+// Novos Módulos v3.0
+import { TemplateManager } from './modules/TemplateManager.js';
+import { GoalsManager } from './modules/GoalsManager.js';
 
 class BIAnalyticsPro {
   constructor() {
     this.uploadManager = new FileUploadManager();
     this.excelParser = new ExcelParser();
+    this.jsonParser = new JSONParser();
+    this.xmlParser = new XMLParser();
+    this.googleSheetsParser = new GoogleSheetsParser();
     this.typeDetector = new ColumnTypeDetector();
     this.validator = new DataValidator();
     this.uiManager = new UIManager();
@@ -51,14 +62,18 @@ class BIAnalyticsPro {
     this.dashboardCustomizer = new DashboardCustomizer();
     this.alertsManager = new AlertsManager();
     this.aiReportGenerator = new AIReportGenerator();
+    this.templateManager = new TemplateManager();
+    this.goalsManager = new GoalsManager();
     
     this.currentData = null;
+    this.currentFormat = null;
     this.columnMetadata = null;
     this.analytics = null;
     this.charts = null;
     this.insights = null;
     this.exportManager = null;
     this.advancedAnalytics = null;
+    this.currentTemplate = null;
     
     this.status = ProcessingStatus.IDLE;
     
@@ -86,6 +101,38 @@ class BIAnalyticsPro {
       uploadBtn.addEventListener('click', () => fileInput.click());
       fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
     }
+    
+    // Google Sheets import
+    const importSheetsBtn = document.getElementById('import-sheets-btn');
+    const sheetsUrlInput = document.getElementById('sheets-url');
+    if (importSheetsBtn && sheetsUrlInput) {
+      importSheetsBtn.addEventListener('click', () => {
+        const url = sheetsUrlInput.value.trim();
+        if (url) {
+          this.importGoogleSheets(url);
+        } else {
+          this.uiManager.showToast('⚠️ Digite a URL da planilha do Google Sheets', 'warning');
+        }
+      });
+    }
+    
+    // Tabs para alternar entre upload de arquivo e URL
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabName = btn.dataset.tab;
+        
+        // Ativar tab
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Mostrar conteúdo
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+        document.querySelector(`[data-content="${tabName}"]`)?.classList.add('active');
+      });
+    });
     
     // Drag and drop
     const uploadCard = document.querySelector('.upload-card');
@@ -118,6 +165,12 @@ class BIAnalyticsPro {
     // AI Report button
     document.getElementById('ai-report-btn')?.addEventListener('click', () => this.generateAIReport());
     
+    // Templates button
+    document.getElementById('templates-btn')?.addEventListener('click', () => this.showTemplatesModal());
+    
+    // Goals button
+    document.getElementById('goals-btn')?.addEventListener('click', () => this.showGoalsModal());
+    
     // Progress listener
     window.addEventListener('upload-progress', (e) => {
       this.uiManager.updateProgress(e.detail.progress);
@@ -147,29 +200,75 @@ class BIAnalyticsPro {
       this.uiManager.updateStep(1, 'processing', 'Lendo arquivo...');
       
       const uploadResult = await this.uploadManager.uploadFile(file);
+      this.currentFormat = uploadResult.format;
       
-      // ETAPA 2: Parsing Excel
+      // ETAPA 2: Parsing baseado no formato
       this.status = ProcessingStatus.READING;
       this.uiManager.updateStep(1, 'completed', 'Leitura concluída!');
       this.uiManager.updateStep(2, 'processing', 'Detectando colunas...');
       
       await this.delay(500);
       
-      this.excelParser.readWorkbook(uploadResult.data);
-      const sheetData = this.excelParser.getFirstValidSheet();
+      // Parse dados baseado no formato do arquivo
+      let parseResult;
+      switch (this.currentFormat) {
+        case 'excel': {
+          this.excelParser.readWorkbook(uploadResult.data);
+          const sheetData = this.excelParser.getFirstValidSheet();
+          parseResult = {
+            data: sheetData.data,
+            metadata: sheetData.metadata
+          };
+          break;
+        }
+          
+        case 'json':
+          parseResult = await this.jsonParser.parseJSON(uploadResult.data);
+          if (!parseResult.success) {
+            throw new Error(parseResult.error);
+          }
+          break;
+          
+        case 'xml':
+          parseResult = await this.xmlParser.parseXML(uploadResult.data);
+          if (!parseResult.success) {
+            throw new Error(parseResult.error);
+          }
+          break;
+          
+        case 'csv': {
+          // CSV é processado via Papa Parse (já incluído no ExcelParser)
+          this.excelParser.readWorkbook(uploadResult.data);
+          const csvData = this.excelParser.getFirstValidSheet();
+          parseResult = {
+            data: csvData.data,
+            metadata: csvData.metadata
+          };
+          break;
+        }
+          
+        default:
+          throw new Error(`Formato não suportado: ${this.currentFormat}`);
+      }
       
-      this.currentData = sheetData.data;
+      this.currentData = parseResult.data;
+      
+      if (!this.currentData || this.currentData.length === 0) {
+        throw new Error('Nenhum dado encontrado no arquivo');
+      }
       
       // ETAPA 3: Detecção de tipos
       this.status = ProcessingStatus.DETECTING;
-      this.uiManager.updateStep(2, 'completed', `${sheetData.metadata.columnCount} colunas detectadas!`);
+      const columnCount = Object.keys(this.currentData[0] || {}).length;
+      this.uiManager.updateStep(2, 'completed', `${columnCount} colunas detectadas!`);
       this.uiManager.updateStep(3, 'processing', 'Validando dados...');
       
       await this.delay(500);
       
+      const headers = Object.keys(this.currentData[0] || {});
       this.columnMetadata = this.typeDetector.detectAllColumns(
         this.currentData,
-        sheetData.metadata.headers
+        headers
       );
       
       // ETAPA 4: Validação
@@ -1006,6 +1105,343 @@ class BIAnalyticsPro {
         button.textContent = '📄 Exportar Relatório IA';
       }
     }
+  }
+
+  /**
+   * 🎯 TEMPLATES E METAS
+   */
+
+  /**
+   * Aplicar template de análise
+   */
+  applyTemplate(templateId) {
+    if (!this.currentData || !this.columnMetadata) {
+      this.uiManager.showToast('⚠️ Carregue dados antes de aplicar um template', 'warning');
+      return;
+    }
+
+    const result = this.templateManager.applyTemplate(templateId, this.currentData);
+    
+    if (result.success) {
+      this.currentTemplate = result.template;
+      
+      // Atualizar UI com informações do template
+      this.uiManager.showToast(`✅ Template "${result.template.name}" aplicado!`, 'success');
+      
+      // Mostrar KPIs sugeridos
+      console.log('📊 KPIs recomendados:', result.kpis);
+      console.log('💡 Insights sugeridos:', result.insights);
+      
+      // Poderia reprocessar análises com foco no template
+      // this.reprocessWithTemplate(result);
+    } else {
+      this.uiManager.showToast(`❌ ${result.validation.message}`, 'error');
+    }
+  }
+
+  /**
+   * Sugerir template automaticamente
+   */
+  suggestTemplate() {
+    if (!this.currentData) return null;
+    
+    const suggestion = this.templateManager.suggestTemplate(this.currentData);
+    
+    if (suggestion) {
+      console.log(`💡 Template sugerido: ${suggestion.template.name} (${suggestion.confidence} confidence)`);
+      return suggestion;
+    }
+    
+    return null;
+  }
+
+  /**
+   * Criar meta de negócio
+   */
+  createGoal(goalConfig) {
+    const goal = this.goalsManager.createGoal(goalConfig);
+    this.uiManager.showToast(`🎯 Meta "${goal.name}" criada!`, 'success');
+    return goal;
+  }
+
+  /**
+   * Atualizar progresso das metas
+   */
+  updateGoalsProgress() {
+    if (!this.analytics || !this.analytics.kpis) return;
+    
+    // Construir objeto de KPIs para o GoalsManager
+    const kpis = {};
+    this.analytics.kpis.forEach(kpi => {
+      kpis[kpi.name] = kpi.value;
+    });
+    
+    const results = this.goalsManager.calculateGoalsProgress(this.currentData, kpis);
+    
+    // Processar alerts de metas
+    results.forEach(result => {
+      if (result.alerts && result.alerts.length > 0) {
+        result.alerts.forEach(alert => {
+          this.uiManager.showToast(alert.message, alert.type);
+        });
+      }
+    });
+    
+    return results;
+  }
+
+  /**
+   * Exibir dashboard de metas
+   */
+  showGoalsDashboard() {
+    const dashboard = this.goalsManager.getGoalsDashboard();
+    console.log('🎯 Dashboard de Metas:', dashboard);
+    // Aqui você pode criar uma UI específica para o dashboard
+    return dashboard;
+  }
+
+  /**
+   * Importar Google Sheets via URL
+   */
+  async importGoogleSheets(url, sheetId = null) {
+    try {
+      this.uiManager.showToast('📥 Importando Google Sheets...', 'info');
+      
+      const result = await this.googleSheetsParser.parseGoogleSheets(url, sheetId);
+      
+      if (result.success) {
+        this.currentData = result.data;
+        this.currentFormat = 'google-sheets';
+        
+        // Processar como se fosse um arquivo normal
+        await this.processImportedData();
+        
+        this.uiManager.showToast(`✅ Google Sheets importado com sucesso!`, 'success');
+      } else {
+        throw new Error(result.error);
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro ao importar Google Sheets:', error);
+      this.uiManager.showToast(`❌ Erro: ${error.message}`, 'error');
+    }
+  }
+
+  /**
+   * Processar dados importados (Google Sheets, JSON, XML, etc.)
+   */
+  async processImportedData() {
+    try {
+      // Iniciar processamento
+      this.uiManager.showProcessingSection();
+      this.uiManager.updateStep(1, 'completed', 'Dados importados!');
+      this.uiManager.updateStep(2, 'processing', 'Detectando colunas...');
+      
+      await this.delay(300);
+      
+      // Detectar tipos de colunas
+      const headers = Object.keys(this.currentData[0] || {});
+      this.columnMetadata = this.typeDetector.detectAllColumns(this.currentData, headers);
+      
+      this.uiManager.updateStep(2, 'completed', `${headers.length} colunas detectadas!`);
+      this.uiManager.updateStep(3, 'processing', 'Validando dados...');
+      
+      await this.delay(300);
+      
+      // Validar
+      this.validator.validate(this.currentData, this.columnMetadata);
+      this.currentData = this.validator.cleanData(this.currentData, ['remove_empty_rows']);
+      
+      this.uiManager.updateStep(3, 'completed', 'Dados validados!');
+      this.uiManager.updateStep(4, 'processing', 'Gerando análises...');
+      
+      await this.delay(300);
+      
+      // Análises
+      const analyticsEngine = new AnalyticsEngine(this.currentData, this.columnMetadata);
+      this.analytics = analyticsEngine.analyzeAll();
+      
+      this.uiManager.updateStep(4, 'completed', `${this.analytics.kpis.length} KPIs gerados!`);
+      this.uiManager.updateStep(5, 'processing', 'Criando insights...');
+      
+      await this.delay(300);
+      
+      // Insights
+      const insightsGenerator = new InsightsGenerator(this.currentData, this.columnMetadata, this.analytics);
+      this.insights = insightsGenerator.generateAll();
+      this.analytics.insights = this.insights;
+      
+      // Gráficos
+      const chartGenerator = new ChartGenerator(this.currentData, this.columnMetadata, this.analytics);
+      this.charts = chartGenerator.generateAll();
+      
+      this.uiManager.updateStep(5, 'completed', `${this.insights.length} insights criados!`);
+      
+      // Análises avançadas
+      this.advancedAnalytics = {
+        ml: this.mlEngine.analyzeAll(this.currentData, this.columnMetadata, this.analytics),
+        rfm: this.rfmAnalyzer.analyze(this.currentData, this.columnMetadata),
+        cohort: this.cohortAnalyzer.analyze(this.currentData, this.columnMetadata),
+        correlation: this.correlationAnalyzer.analyze(this.currentData, this.columnMetadata),
+        geo: this.geoAnalyzer.analyze(this.currentData, this.columnMetadata),
+        marketBasket: this.marketBasketAnalyzer.analyze(this.currentData, this.columnMetadata),
+        churn: this.churnAnalyzer.analyze(this.currentData, this.columnMetadata),
+        timeSeries: this.timeSeriesAnalyzer.analyze(this.currentData, this.columnMetadata, this.analytics)
+      };
+      
+      // Sugerir template automaticamente
+      this.suggestTemplate();
+      
+      // Exibir dashboard
+      this.status = ProcessingStatus.COMPLETED;
+      this.exportManager = new ExportManager(this.currentData, this.columnMetadata, this.analytics, this.charts);
+      this.uiManager.showDashboard(this.analytics, this.charts, this.insights, this.columnMetadata);
+      
+    } catch (error) {
+      console.error('Erro ao processar dados importados:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Exibir modal de seleção de templates
+   */
+  showTemplatesModal() {
+    const templates = this.templateManager.listTemplates();
+    
+    // Criar HTML do modal
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>🎯 Selecione um Template de Análise</h2>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="templates-grid">
+            ${templates.map(t => `
+              <div class="template-card" data-template="${t.id}">
+                <div class="template-icon" style="background: ${t.color}20">${t.icon}</div>
+                <h3>${t.name}</h3>
+                <p>${t.description}</p>
+                <button class="btn-select-template" data-id="${t.id}">Aplicar Template</button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Event listeners
+    modal.querySelector('.modal-close').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
+    });
+    
+    modal.querySelectorAll('.btn-select-template').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const templateId = btn.dataset.id;
+        this.applyTemplate(templateId);
+        modal.remove();
+      });
+    });
+  }
+
+  /**
+   * Exibir modal de configuração de metas
+   */
+  showGoalsModal() {
+    const goalTemplates = this.goalsManager.getGoalTemplates();
+    const activeGoals = this.goalsManager.getActiveGoals();
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-content modal-large">
+        <div class="modal-header">
+          <h2>📈 Metas e Objetivos</h2>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="goals-tabs">
+            <button class="goal-tab-btn active" data-tab="active">Metas Ativas (${activeGoals.length})</button>
+            <button class="goal-tab-btn" data-tab="create">Criar Nova Meta</button>
+          </div>
+          
+          <div class="goal-tab-content active" data-content="active">
+            <div class="goals-list">
+              ${activeGoals.length > 0 ? activeGoals.map(goal => `
+                <div class="goal-card">
+                  <div class="goal-header">
+                    <h3>${goal.name}</h3>
+                    <span class="goal-priority priority-${goal.priority}">${goal.priority}</span>
+                  </div>
+                  <div class="goal-progress">
+                    <div class="progress-bar-goal">
+                      <div class="progress-fill-goal" style="width: ${goal.progress}%"></div>
+                    </div>
+                    <span class="progress-text">${goal.progress.toFixed(1)}%</span>
+                  </div>
+                  <div class="goal-details">
+                    <span>Atual: ${goal.current} / Meta: ${goal.target}</span>
+                    <span>Período: ${goal.period}</span>
+                  </div>
+                </div>
+              `).join('') : '<p class="empty-state">Nenhuma meta ativa. Crie sua primeira meta!</p>'}
+            </div>
+          </div>
+          
+          <div class="goal-tab-content" data-content="create">
+            <div class="create-goal-form">
+              <h3>Templates de Metas</h3>
+              <div class="goal-templates-grid">
+                ${Object.entries(goalTemplates).map(([key, template]) => `
+                  <div class="goal-template-card" data-template="${key}">
+                    <h4>${template.name}</h4>
+                    <p>Meta: ${template.target} ${template.type === 'revenue' ? 'R$' : 'un'}</p>
+                    <p>Período: ${template.period}</p>
+                    <button class="btn-use-template" data-key="${key}">Usar Template</button>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Event listeners
+    modal.querySelector('.modal-close').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
+    });
+    
+    // Tabs
+    modal.querySelectorAll('.goal-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabName = btn.dataset.tab;
+        modal.querySelectorAll('.goal-tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        modal.querySelectorAll('.goal-tab-content').forEach(content => content.classList.remove('active'));
+        modal.querySelector(`[data-content="${tabName}"]`).classList.add('active');
+      });
+    });
+    
+    // Usar template de meta
+    modal.querySelectorAll('.btn-use-template').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const templateKey = btn.dataset.key;
+        const template = goalTemplates[templateKey];
+        this.createGoal(template);
+        modal.remove();
+        this.showGoalsModal(); // Reabrir para mostrar nova meta
+      });
+    });
   }
 
   /**

@@ -903,3 +903,498 @@ body {
   }
 }
 
+/* ===============================================
+   NOVAS FEATURES v3.0 - Templates, Metas e Múltiplos Formatos
+   =============================================== */
+
+/* Import Tabs */
+.import-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+  justify-content: center;
+}
+
+.tab-btn {
+  padding: 0.75rem 1.5rem;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.tab-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.tab-btn:hover:not(.active) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* URL Input */
+.url-input {
+  width: 100%;
+  padding: 0.875rem;
+  border: 2px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  margin-bottom: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.url-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.url-help {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+.supported-formats {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-top: 0.75rem;
+}
+
+/* Template e Goals Buttons */
+.btn-templates,
+.btn-goals {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+}
+
+.btn-templates {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-templates:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-goals {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.btn-goals:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: white;
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 800px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+.modal-large {
+  max-width: 1000px;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  line-height: 1;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: #f1f5f9;
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+/* Templates Grid */
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.template-card {
+  border: 2px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.template-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.template-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
+
+.template-card h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.125rem;
+  color: var(--text-primary);
+}
+
+.template-card p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  min-height: 40px;
+}
+
+.btn-select-template {
+  width: 100%;
+  padding: 0.625rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s ease;
+}
+
+.btn-select-template:hover {
+  background: var(--primary-dark);
+}
+
+/* Goals Tabs */
+.goals-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.goal-tab-btn {
+  padding: 0.75rem 1.5rem;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+}
+
+.goal-tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.goal-tab-btn:hover:not(.active) {
+  color: var(--text-primary);
+}
+
+.goal-tab-content {
+  display: none;
+}
+
+.goal-tab-content.active {
+  display: block;
+}
+
+/* Goals List */
+.goals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.goal-card {
+  background: linear-gradient(to right, #f8fafc, white);
+  border: 2px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+}
+
+.goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.goal-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  color: var(--text-primary);
+}
+
+.goal-priority {
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.priority-critical {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.priority-high {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.priority-medium {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.priority-low {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.goal-progress {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.progress-bar-goal {
+  flex: 1;
+  height: 12px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-fill-goal {
+  height: 100%;
+  background: linear-gradient(90deg, var(--success), #22c55e);
+  border-radius: 6px;
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  font-weight: 700;
+  color: var(--text-primary);
+  min-width: 50px;
+  text-align: right;
+}
+
+.goal-details {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Goal Templates Grid */
+.goal-templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.goal-template-card {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.goal-template-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.goal-template-card h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.goal-template-card p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0.25rem 0;
+}
+
+.btn-use-template {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.75rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s ease;
+}
+
+.btn-use-template:hover {
+  background: var(--primary-dark);
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 3rem;
+  font-size: 1.125rem;
+}
+
+/* Toast Notifications */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+  animation: slideInRight 0.3s ease;
+  max-width: 400px;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast.success {
+  border-left: 4px solid var(--success);
+}
+
+.toast.error {
+  border-left: 4px solid var(--danger);
+}
+
+.toast.warning {
+  border-left: 4px solid #f59e0b;
+}
+
+.toast.info {
+  border-left: 4px solid var(--primary);
+}
+
+/* Responsive para modais */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .templates-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .goal-templates-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .import-tabs {
+    flex-direction: column;
+  }
+
+  .goals-tabs {
+    flex-direction: column;
+  }
+}
