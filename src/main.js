@@ -854,6 +854,11 @@ class BIAnalyticsPro {
         button.textContent = '⏳ Gerando PDF...';
       }
 
+      // Verificar se jsPDF está disponível
+      if (!window.jspdf) {
+        throw new Error('Biblioteca jsPDF não carregada. Recarregue a página e tente novamente.');
+      }
+
       // Criar PDF do relatório IA
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -862,11 +867,12 @@ class BIAnalyticsPro {
       const pageHeight = doc.internal.pageSize.height;
       const margin = 20;
       const lineHeight = 7;
+      const maxWidth = 170;
 
       // Título
       doc.setFontSize(18);
       doc.setFont(undefined, 'bold');
-      doc.text('Relatório Inteligente com IA', margin, yPosition);
+      doc.text('Relatorio Inteligente com IA', margin, yPosition);
       yPosition += 10;
 
       // Metadados
@@ -891,23 +897,33 @@ class BIAnalyticsPro {
         // Título da seção
         doc.setFontSize(14);
         doc.setFont(undefined, 'bold');
-        doc.text(section.title, margin, yPosition);
-        yPosition += lineHeight;
+        const sectionTitle = section.title?.replace(/[^\x00-\x7F]/g, '') || 'Secao';
+        doc.text(sectionTitle, margin, yPosition);
+        yPosition += lineHeight + 3;
 
         // Conteúdo
         doc.setFontSize(10);
         doc.setFont(undefined, 'normal');
         
-        const content = section.content?.replace(/[*#]/g, '') || '';
-        const lines = doc.splitTextToSize(content, 170);
+        // Limpar conteúdo de caracteres especiais e formatação Markdown
+        const content = (section.content || '')
+          .replace(/\*\*/g, '')
+          .replace(/\*/g, '')
+          .replace(/#{1,6}\s/g, '')
+          .replace(/[^\x00-\x7F]/g, '')
+          .trim();
         
-        for (const line of lines) {
-          if (yPosition > pageHeight - margin) {
-            doc.addPage();
-            yPosition = 20;
+        if (content) {
+          const lines = doc.splitTextToSize(content, maxWidth);
+          
+          for (const line of lines) {
+            if (yPosition > pageHeight - margin) {
+              doc.addPage();
+              yPosition = 20;
+            }
+            doc.text(line, margin, yPosition);
+            yPosition += lineHeight;
           }
-          doc.text(line, margin, yPosition);
-          yPosition += lineHeight;
         }
         
         yPosition += 10; // Espaço entre seções
@@ -917,11 +933,12 @@ class BIAnalyticsPro {
       const filename = `Relatorio_IA_${report.reportId}_${Date.now()}.pdf`;
       doc.save(filename);
 
-      alert(`✅ Relatório exportado: ${filename}`);
+      // Feedback de sucesso
+      this.uiManager.showToast(`✅ Relatório exportado: ${filename}`, 'success');
 
     } catch (error) {
       console.error('Erro ao exportar relatório:', error);
-      alert('Erro ao exportar relatório IA');
+      this.uiManager.showToast(`❌ Erro ao exportar: ${error.message}`, 'error');
     } finally {
       const button = document.getElementById('export-ai-report-btn');
       if (button) {
