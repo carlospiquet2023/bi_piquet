@@ -668,6 +668,13 @@ class BIAnalyticsPro {
       return;
     }
 
+    // TEMPORÁRIO: Funcionalidade em desenvolvimento
+    // TODO: Descomentar código abaixo quando configurar API Key
+    this.showDevelopmentMessage();
+    return;
+
+    /* 
+    // ==== CÓDIGO DA IA (MANTER PARA ATIVAR DEPOIS) ====
     const button = document.getElementById('ai-report-btn');
     if (button) {
       button.disabled = true;
@@ -701,6 +708,59 @@ class BIAnalyticsPro {
         button.innerHTML = '🤖 Gerar Relatório com IA';
       }
     }
+    */
+  }
+
+  /**
+   * Exibe mensagem de funcionalidade em desenvolvimento
+   */
+  showDevelopmentMessage() {
+    const container = document.getElementById('ai-report-container') || this.createAIReportContainer();
+    
+    container.innerHTML = `
+      <div class="ai-report" style="text-align: center; padding: 4rem 2rem;">
+        <div style="font-size: 5rem; margin-bottom: 1rem;">🚧</div>
+        <h2 style="color: #667eea; font-size: 2.5rem; margin-bottom: 1rem;">
+          Funcionalidade em Desenvolvimento
+        </h2>
+        <p style="font-size: 1.2rem; color: #64748b; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+          Os <strong>Relatórios Inteligentes com IA</strong> estão temporariamente desativados.<br>
+          Esta funcionalidade premium estará disponível em breve com análises de nível profissional sênior.
+        </p>
+        
+        <div style="background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 12px; padding: 2rem; max-width: 700px; margin: 2rem auto; text-align: left;">
+          <h3 style="color: #667eea; margin-bottom: 1rem;">📊 O que você terá quando ativar:</h3>
+          <ul style="list-style: none; padding: 0;">
+            <li style="padding: 0.5rem 0; font-size: 1.1rem;">✅ Sumário Executivo para C-Level</li>
+            <li style="padding: 0.5rem 0; font-size: 1.1rem;">✅ Análise Profunda de Tendências</li>
+            <li style="padding: 0.5rem 0; font-size: 1.1rem;">✅ Oportunidades de Crescimento com ROI</li>
+            <li style="padding: 0.5rem 0; font-size: 1.1rem;">✅ Análise de Riscos e Ameaças</li>
+            <li style="padding: 0.5rem 0; font-size: 1.1rem;">✅ Performance e Benchmarking</li>
+            <li style="padding: 0.5rem 0; font-size: 1.1rem;">✅ Recomendações Estratégicas</li>
+            <li style="padding: 0.5rem 0; font-size: 1.1rem;">✅ Previsões Futuras</li>
+            <li style="padding: 0.5rem 0; font-size: 1.1rem;">✅ Plano de Ação Detalhado</li>
+          </ul>
+        </div>
+
+        <div style="margin-top: 2rem; padding: 1.5rem; background: #f8fafc; border-radius: 8px; max-width: 600px; margin-left: auto; margin-right: auto;">
+          <p style="color: #1e293b; font-weight: 600; margin-bottom: 0.5rem;">💡 Enquanto isso, aproveite:</p>
+          <p style="color: #64748b;">
+            • 14 módulos de análise avançada já ativos<br>
+            • Machine Learning, RFM, Churn, Cohort<br>
+            • Gráficos interativos e insights automáticos<br>
+            • Exportação profissional em PDF/Excel
+          </p>
+        </div>
+
+        <div style="margin-top: 2rem; font-size: 0.9rem; color: #94a3b8;">
+          <p>Desenvolvido por <strong>Carlos Antonio de Oliveira Piquet</strong></p>
+          <p>carlospiquet.projetos@gmail.com</p>
+        </div>
+      </div>
+    `;
+
+    // Scroll suave até a mensagem
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   /**
