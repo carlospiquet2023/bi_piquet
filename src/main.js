@@ -348,6 +348,18 @@ class BIAnalyticsPro {
       
       console.log(`✅ ${newAlerts.length} alerta(s) gerado(s)`);
       
+      // ETAPA 6.7: Sugerir e aplicar template automaticamente
+      console.log('🎯 Sugerindo template...');
+      const templateSuggestion = this.suggestTemplate();
+      if (templateSuggestion && templateSuggestion.confidence !== 'low') {
+        console.log(`✨ Template "${templateSuggestion.template.name}" aplicado automaticamente!`);
+        this.applyTemplate(templateSuggestion.templateId);
+      }
+      
+      // ETAPA 6.8: Criar metas automáticas baseadas na análise
+      console.log('📈 Criando metas automáticas...');
+      this.createAutoGoals();
+      
       await this.delay(1000);
       
       // ETAPA 7: Exibir dashboard
@@ -1126,16 +1138,53 @@ class BIAnalyticsPro {
       this.currentTemplate = result.template;
       
       // Atualizar UI com informações do template
-      this.uiManager.showToast(`✅ Template "${result.template.name}" aplicado!`, 'success');
+      console.log(`✅ Template "${result.template.name}" ${result.template.icon} aplicado!`);
       
-      // Mostrar KPIs sugeridos
+      // Mostrar notificação visual
+      this.uiManager.showToast(
+        `✅ Template "${result.template.name}" aplicado com sucesso!`, 
+        'success'
+      );
+      
+      // Mostrar KPIs e insights sugeridos no console
       console.log('📊 KPIs recomendados:', result.kpis);
       console.log('💡 Insights sugeridos:', result.insights);
+      console.log('🔗 Colunas mapeadas:', result.mappedColumns);
       
-      // Poderia reprocessar análises com foco no template
-      // this.reprocessWithTemplate(result);
+      // Atualizar dashboard com foco no template
+      this.updateDashboardWithTemplate(result);
+      
+      return result;
     } else {
-      this.uiManager.showToast(`❌ ${result.validation.message}`, 'error');
+      const missingColumns = result.validation.missing.join(', ');
+      this.uiManager.showToast(
+        `❌ Template requer colunas: ${missingColumns}`, 
+        'error'
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Atualizar dashboard com informações do template
+   */
+  updateDashboardWithTemplate(templateResult) {
+    // Adicionar indicador visual do template ativo
+    const actionsBar = document.querySelector('.actions-bar');
+    if (actionsBar) {
+      // Remover indicador anterior se existir
+      const oldIndicator = actionsBar.querySelector('.template-indicator');
+      if (oldIndicator) oldIndicator.remove();
+      
+      // Adicionar novo indicador
+      const indicator = document.createElement('div');
+      indicator.className = 'template-indicator';
+      indicator.innerHTML = `
+        <span class="template-badge" style="background: ${templateResult.template.color}">
+          ${templateResult.template.icon} ${templateResult.template.name}
+        </span>
+      `;
+      actionsBar.insertBefore(indicator, actionsBar.firstChild);
     }
   }
 
@@ -1153,6 +1202,122 @@ class BIAnalyticsPro {
     }
     
     return null;
+  }
+
+  /**
+   * Criar metas automaticamente baseadas nos KPIs disponíveis
+   */
+  createAutoGoals() {
+    if (!this.analytics || !this.analytics.kpis || this.analytics.kpis.length === 0) {
+      console.log('⚠️ Nenhum KPI disponível para criar metas automáticas');
+      return [];
+    }
+
+    const createdGoals = [];
+    const kpis = this.analytics.kpis;
+    
+    // Obter templates de metas disponíveis
+    const goalTemplates = this.goalsManager.getGoalTemplates();
+    
+    // Mapear IDs de KPI para tipos de meta apropriados
+    const kpiGoalMapping = {
+      // KPIs de receita/vendas
+      'receita': { template: 'vendas', multiplier: 1.15 },
+      'total': { template: 'vendas', multiplier: 1.15 },
+      'vendas': { template: 'vendas', multiplier: 1.15 },
+      'revenue': { template: 'vendas', multiplier: 1.15 },
+      
+      // KPIs de ticket médio
+      'avg': { template: 'vendas', multiplier: 1.10 },
+      'ticket': { template: 'vendas', multiplier: 1.10 },
+      'medio': { template: 'vendas', multiplier: 1.10 },
+      
+      // KPIs de clientes
+      'clientes': { template: 'clientes', multiplier: 1.20 },
+      'customers': { template: 'clientes', multiplier: 1.20 },
+      'usuarios': { template: 'clientes', multiplier: 1.20 },
+      
+      // KPIs de margem
+      'margem': { template: 'margem', multiplier: 1.05 },
+      'margin': { template: 'margem', multiplier: 1.05 },
+      'lucro': { template: 'margem', multiplier: 1.05 },
+      'profit': { template: 'margem', multiplier: 1.05 },
+      
+      // KPIs de satisfação
+      'nps': { template: 'satisfacao', multiplier: 1.05 },
+      'satisfacao': { template: 'satisfacao', multiplier: 1.05 },
+      'satisfaction': { template: 'satisfacao', multiplier: 1.05 }
+    };
+    
+    // Determinar período baseado nos dados
+    const period = this.currentData && this.currentData.length > 300 ? 'anual' : 'mensal';
+    
+    // Criar metas para os principais KPIs (máximo 5)
+    let goalsCreated = 0;
+    const maxGoals = 5;
+    
+    for (const kpi of kpis) {
+      if (goalsCreated >= maxGoals) break;
+      
+      // Validar estrutura do KPI
+      if (!kpi.id || !kpi.rawValue || kpi.rawValue <= 0) {
+        continue;
+      }
+      
+      // Tentar encontrar mapping baseado no ID do KPI
+      const kpiIdLower = kpi.id.toLowerCase();
+      let mapping = null;
+      
+      for (const [keyword, map] of Object.entries(kpiGoalMapping)) {
+        if (kpiIdLower.includes(keyword)) {
+          mapping = map;
+          break;
+        }
+      }
+      
+      if (!mapping) continue;
+      
+      const goalTemplate = goalTemplates[mapping.template];
+      if (!goalTemplate) continue;
+      
+      // Calcular meta baseada no valor atual
+      const currentValue = kpi.rawValue;
+      const targetValue = Math.round(currentValue * mapping.multiplier);
+      
+      // Criar configuração da meta
+      const goalConfig = {
+        name: `${goalTemplate.name} - ${new Date().getFullYear()}`,
+        description: `Meta automática: aumentar ${kpi.title} em ${Math.round((mapping.multiplier - 1) * 100)}%`,
+        metric: kpi.id,
+        currentValue: currentValue,
+        targetValue: targetValue,
+        period: period,
+        category: goalTemplate.category,
+        icon: goalTemplate.icon
+      };
+      
+      try {
+        const goal = this.goalsManager.createGoal(goalConfig);
+        createdGoals.push(goal);
+        goalsCreated++;
+        console.log(`🎯 Meta automática criada: ${goal.name} (${kpi.title})`);
+      } catch (error) {
+        console.error('❌ Erro ao criar meta automática:', error);
+      }
+    }
+    
+    // Notificar usuário
+    if (createdGoals.length > 0) {
+      this.uiManager.showToast(
+        `🎯 ${createdGoals.length} meta(s) criada(s) automaticamente!`, 
+        'success'
+      );
+      console.log(`✅ Total de metas automáticas criadas: ${createdGoals.length}`);
+    } else {
+      console.log('ℹ️ Nenhuma meta automática criada (KPIs não corresponderam aos templates)');
+    }
+    
+    return createdGoals;
   }
 
   /**
