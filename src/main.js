@@ -897,7 +897,7 @@ class BIAnalyticsPro {
         // Título da seção
         doc.setFontSize(14);
         doc.setFont(undefined, 'bold');
-        const sectionTitle = section.title?.replace(/[^\x00-\x7F]/g, '') || 'Secao';
+        const sectionTitle = section.title?.replace(/[^\x20-\x7E]/g, '') || 'Secao';
         doc.text(sectionTitle, margin, yPosition);
         yPosition += lineHeight + 3;
 
@@ -910,7 +910,7 @@ class BIAnalyticsPro {
           .replace(/\*\*/g, '')
           .replace(/\*/g, '')
           .replace(/#{1,6}\s/g, '')
-          .replace(/[^\x00-\x7F]/g, '')
+          .replace(/[^\x20-\x7E\n\r]/g, '')
           .trim();
         
         if (content) {
